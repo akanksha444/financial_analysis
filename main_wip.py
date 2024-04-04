@@ -3,12 +3,10 @@ import os
 import matplotlib.pyplot as plt
 import glob
 from functions.ranking import ranking
-from functions.comparision_analysis import comparison_analysis
 
 # Specify the pattern to match filenames (e.g., all .xlsx files)
 pattern = 'sample/*.xlsx'
 filenames = glob.glob(pattern)
-filenames = [filename.strip() for filename in filenames]
 print(filenames)
 
 
@@ -174,5 +172,5 @@ for file_path in filenames:
 if not os.path.exists('comparison_analysis/'):
     # Create the folder if it does not exist
     os.makedirs('comparison_analysis/')
-comparison_analysis()
+
 ranking()

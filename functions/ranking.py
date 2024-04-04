@@ -5,8 +5,9 @@ import matplotlib.pyplot as plt
 
 
 def ranking():
-    pattern = 'analysis_report/**/*.xlsx'
-    filenames = glob.glob(pattern)
+    report_folder = "analysis_report/"
+    pattern = report_folder + '/**/*.xlsx'
+    filenames = glob.glob(pattern, recursive=True)
     print(filenames)
 
     plotting_data = ['Gross Profit Margin', 'Net Profit Margin', 'Return on Assets (ROA)', 'Return on Equity (ROE)',
@@ -14,10 +15,11 @@ def ranking():
 
     years = []
     companies = [os.path.splitext(os.path.basename(filename))[0] for filename in filenames]
-    # Plotting
-    plt.figure(figsize=(10, 6))
+
 
     for term in plotting_data:
+        # Plotting
+        plt.figure(figsize=(10, 6))
         for i, filename in enumerate(filenames):
             df = pd.read_excel(filename, index_col=0)
             company_name = os.path.splitext(os.path.basename(filename))[0]
@@ -29,7 +31,9 @@ def ranking():
         plt.title(f'Comparison of {term} for Five Companies')
         plt.legend()
         plt.grid(True)
-        plt.savefig(f'comparison_analysis/{term}.png')
+        fig_filename = f'comparison_analysis/{term}.png'
+        plt.savefig(fig_filename)
+
 
     ratios = plotting_data
 

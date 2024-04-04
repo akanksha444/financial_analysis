@@ -16,18 +16,18 @@ def comparison_analysis():
     # Plotting
 
 
-
-
-
     # Plot the ratio values for each company
     df_cons = pd.DataFrame()
     data = {}
     years = []
     for term in plotting_data:
+
         plt.figure(figsize=(10, 6))
+
         for i, filename in enumerate(filenames):
             df = pd.read_excel(filename, index_col=0)
             company_name = os.path.splitext(os.path.basename(filename))[0]
+            print(company_name)
             years = df.index.tolist()
             plt.plot(df.index.tolist(), df[term].tolist(), label=f'{company_name}')
             plt.xticks(df.index.tolist())
@@ -41,6 +41,7 @@ def comparison_analysis():
         plt.legend()
         plt.grid(True)
         plt.savefig(f'comparison_analysis/{term}.png')
+        plt.show()
     df_cons = df_cons.transpose()
     df_cons.columns = years
     df_cons.to_excel(f'comparison_analysis/comparison_sheet.xlsx')
@@ -49,3 +50,6 @@ def comparison_analysis():
     df_dict.to_excel(f'comparison_analysis/comparison_sheet2.xlsx')
     df_dict_transpose = df_dict.transpose()
     df_dict_transpose.to_excel(f'comparison_analysis/comparison_sheet3.xlsx')
+
+if __name__ == "__main__":
+    comparison_analysis()
