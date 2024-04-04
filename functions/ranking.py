@@ -21,14 +21,14 @@ def ranking():
         # Plotting
         plt.figure(figsize=(10, 6))
         for i, filename in enumerate(filenames):
-            df = pd.read_excel(filename, index_col=0)
+            df_plot = pd.read_excel(filename, index_col=0)
             company_name = os.path.splitext(os.path.basename(filename))[0]
-            years = df.index.tolist()
-            plt.plot(df.index.tolist(), df[term].tolist(), label=f'{company_name}')
-            plt.xticks(df.index.tolist())
+            years = df_plot.index.tolist()
+            plt.plot(df_plot.index.tolist(), df_plot[term].tolist(), label=f'{company_name}')
+            plt.xticks(df_plot.index.tolist())
         plt.xlabel('Year')
         plt.ylabel(f'{term}')
-        plt.title(f'Comparison of {term} for Five Companies')
+        plt.title(f'Comparison of {term} for Four Companies')
         plt.legend()
         plt.grid(True)
         fig_filename = f'comparison_analysis/{term}.png'
@@ -44,8 +44,8 @@ def ranking():
     for filename in filenames:
         for ratio in ratios:
             company = os.path.splitext(os.path.basename(filename))[0]
-            df = pd.read_excel(filename, index_col=0)
-            data[(company, ratio)] = df[ratio].tolist()
+            df_ranking = pd.read_excel(filename, index_col=0)
+            data[(company, ratio)] = df_ranking[ratio].tolist()
 
     # Create a DataFrame to store the rankings
     rankings = pd.DataFrame(index=years, columns=pd.MultiIndex.from_product([companies, ratios]))

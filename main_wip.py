@@ -3,12 +3,18 @@ import os
 import matplotlib.pyplot as plt
 import glob
 from functions.ranking import ranking
+from statsmodels.tsa.holtwinters import SimpleExpSmoothing
+
 
 # Specify the pattern to match filenames (e.g., all .xlsx files)
 pattern = 'sample/*.xlsx'
 filenames = glob.glob(pattern)
 print(filenames)
+file_name_without_extension =[]
 
+plotting_data = ['Gross Profit Margin', 'Net Profit Margin', 'Return on Assets (ROA)', 'Return on Equity (ROE)',
+                 'Asset Turnover', 'Current Ratio', 'Price to Earning Ratio', 'Price to Book Ratio']
+df_result = pd.DataFrame()
 
 for file_path in filenames:
     income_statement = pd.read_excel(file_path, sheet_name='income_statement')
@@ -150,10 +156,6 @@ for file_path in filenames:
 
     # Set index=False if you don't want to include row numbers
     df_result.to_excel(company_report_file)
-
-    plotting_data = ['Gross Profit Margin', 'Net Profit Margin', 'Return on Assets (ROA)', 'Return on Equity (ROE)',
-                     'Asset Turnover', 'Current Ratio', 'Price to Earning Ratio', 'Price to Book Ratio']
-
     plt.figure(figsize=(12, 9))
     years = income_statement.columns[1:].tolist()
 
@@ -165,12 +167,58 @@ for file_path in filenames:
             #plt.plot([1,2,3,4], [1,2,3,4], color='blue')
             plt.plot(years, df_result[term], color='blue')
             plt.xticks(years)
-    plt.tight_layout()  # Adjust layout to prevent overlapping
-    plt.savefig(f'{output_folder}time_series_trend.png')
 
+        plt.xlabel('year')
+        plt.ylabel(f'{term}')
+    plt.suptitle(f'{file_name_without_extension}')
+    plt.tight_layout()  # Adjust layout to prevent overlapping
+    plt.savefig(f'{output_folder}{file_name_without_extension}.png')
+
+    metrics_to_forecast = plotting_data
+    df_result_forecast = df_result[metrics_to_forecast]
+    print(df_result_forecast)
+    sorted_result_forecast = df_result_forecast.sort_index(ascending=True)
+    print(sorted_result_forecast)
+    sorted_result_forecast.index.name = 'Year'
+    sorted_result_forecast.index = pd.to_datetime(sorted_result_forecast.index, format='%Y')
+
+    forecast_data = {}
+
+    for col in sorted_result_forecast.columns:
+        model = SimpleExpSmoothing(sorted_result_forecast[col])
+        fit_model = model.fit()
+        forecast_yr1 = fit_model.forecast(steps=1)[0]
+        forecast_yr2 = fit_model.predict(start=len(sorted_result_forecast), end=len(sorted_result_forecast) + 1)[-1]  # Update model with the forecasted value for 2024
+        forecast_data[col] = [forecast_yr1, forecast_yr2]
+
+    print("Forecasted values for 2024 and 2025:")
+    print(forecast_data)
+    df_forecasted_data = pd.DataFrame(forecast_data)
+    if not os.path.exists(f'forecast_data/{file_name_without_extension}/'):
+        # Create the folder if it does not exist
+        os.makedirs(f'forecast_data/{file_name_without_extension}/')
+    df_forecasted_data.to_excel(f'forecast_data/{file_name_without_extension}/{file_name_without_extension}.xlsx')
+    df_forecast_merged = pd.concat([sorted_result_forecast, df_forecasted_data], axis=0)
+    df_forecast_merged.to_excel(f'forecast_data/{file_name_without_extension}/{file_name_without_extension}_merged.xlsx')
+
+
+    term = ""
+    for i, term in enumerate(plotting_data):
+        plt.figure(figsize=(12, 9))
+        # Plot the observed data
+        plt.plot([2020, 2021, 2022, 2023], sorted_result_forecast[term].values, marker='o', color='blue', label='Observed')
+        # Plot the forecasted data
+        plt.plot([2024, 2025], df_forecasted_data[term].values, linestyle='--', marker='o', color='red', label='Forecasted')
+        # Add labels and title
+        plt.xlabel('Year')
+        plt.ylabel(f'{term}')
+        plt.title(f'{file_name_without_extension} {term} Forecast')
+        plt.legend()
+        plt.savefig(f'forecast_data/{file_name_without_extension}/{file_name_without_extension}_{term}.png')
 
 if not os.path.exists('comparison_analysis/'):
     # Create the folder if it does not exist
     os.makedirs('comparison_analysis/')
 
 ranking()
+
